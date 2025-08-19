@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>FlameUnified QIPL Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #111; color: #eee; }
+        h1 { text-align: center; color: #f2a900; }
+        table { width: 95%; margin: 20px auto; border-collapse: collapse; }
+        th, td { border: 1px solid #555; padding: 10px; text-align: center; }
+        th { background-color: #222; color: #f2a900; }
+        tr:nth-child(even) { background-color: #1a1a1a; }
+        tr:hover { background-color: #333; }
+        .qipl-hash { font-family: monospace; color: #0f0; }
+    </style>
+    <script>
+        async function fetchQIPLData() {
+            const response = await fetch('/cgi-bin/algorithms.cgi?name=all&node=all&qipl=true');
+            const data = await response.json();
+            const container = document.getElementById('dashboard-body');
+            container.innerHTML = '';
+
+            data.qipl_execution_snapshot.nodes.forEach(node => {
+                node.algorithms.forEach(algo => {
+                    const row = document.createElement('tr');
+
+                    row.innerHTML = `
+                        <td>${node.system_node}</td>
+                        <td>${algo.algo_name}</td>
+                        <td>${algo.status}</td>
+                        <td>${algo.last_run}</td>
+                        <td>${JSON.stringify(algo.metrics)}</td>
+                        <td class="qipl-hash">${algo.qipl.hash}</td>
+                        <td>${algo.qipl.semantic_mapping ? '✅' : '❌'}</td>
+                        <td>${algo.qipl.backward_compatibility ? '✅' : '❌'}</td>
+                    `;
+                    container.appendChild(row);
+                });
+            });
+        }
+
+        setInterval(fetchQIPLData, 5000); // refresh every 5 seconds
+        window.onload = fetchQIPLData;
+    </script>
+</head>
+<body>
+    <h1>FlameUnified QIPL Dashboard</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>System Node</th>
+                <th>Algorithm</th>
+                <th>Status</th>
+                <th>Last Run</th>
+                <th>Metrics</th>
+                <th>QIPL Hash</th>
+                <th>Semantic Mapping</th>
+                <th>Backward Compatibility</th>
+            </tr>
+        </thead>
+        <tbody id="dashboard-body">
+            <!-- Dynamic QIPL data will populate here -->
+        </tbody>
+    </table>
+</body>
+</html>
